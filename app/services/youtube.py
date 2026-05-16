@@ -139,9 +139,7 @@ async def extract(url: str) -> TranscriptResult:
         raise ValueError(f"Invalid YouTube URL: {url}")
 
     # Run synchronous yt-dlp work in a thread
-    metadata, transcript, language, source = await asyncio.to_thread(
-        _extract_sync, url, video_id
-    )
+    metadata, transcript, language, source = await asyncio.to_thread(_extract_sync, url, video_id)
 
     return TranscriptResult(
         metadata=metadata,
