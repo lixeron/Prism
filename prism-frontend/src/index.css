@@ -1,0 +1,373 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base ────────────────────────────────── */
+body {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  background: #05050a;
+  min-height: 100vh;
+  overflow-x: hidden;
+  cursor: none;
+}
+
+a, button, input {
+  cursor: none;
+}
+
+/* ── Hide scrollbar globally ─────────────── */
+::-webkit-scrollbar {
+  display: none;
+}
+html {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ── Custom cursor ───────────────────────── */
+.cursor-dot {
+  position: fixed;
+  width: 8px;
+  height: 8px;
+  background: #8b5cf6;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transition: transform 0.1s ease, background 0.2s ease;
+  mix-blend-mode: screen;
+}
+
+.cursor-ring {
+  position: fixed;
+  width: 36px;
+  height: 36px;
+  border: 1.5px solid rgba(139, 92, 246, 0.5);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  transition: transform 0.15s ease, width 0.3s ease, height 0.3s ease, border-color 0.3s ease;
+}
+
+.cursor-ring.hovering {
+  width: 56px;
+  height: 56px;
+  border-color: rgba(6, 182, 212, 0.8);
+}
+
+/* ── Animated gradient mesh background ───── */
+.bg-mesh {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.mesh-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.12;
+  animation: orb-float 20s ease-in-out infinite;
+}
+
+.mesh-orb:nth-child(1) {
+  width: 600px;
+  height: 600px;
+  background: #8b5cf6;
+  top: -10%;
+  left: -10%;
+  animation-delay: 0s;
+  animation-duration: 22s;
+}
+
+.mesh-orb:nth-child(2) {
+  width: 500px;
+  height: 500px;
+  background: #06b6d4;
+  bottom: -15%;
+  right: -10%;
+  animation-delay: -7s;
+  animation-duration: 18s;
+}
+
+.mesh-orb:nth-child(3) {
+  width: 400px;
+  height: 400px;
+  background: #d946ef;
+  top: 40%;
+  left: 50%;
+  animation-delay: -12s;
+  animation-duration: 25s;
+}
+
+@keyframes orb-float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(80px, -60px) scale(1.1); }
+  50% { transform: translate(-40px, 80px) scale(0.9); }
+  75% { transform: translate(60px, 40px) scale(1.05); }
+}
+
+/* ── Noise overlay ───────────────────────── */
+.noise-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 200px;
+}
+
+/* ── Floating particles ──────────────────── */
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: particle-drift linear infinite;
+}
+
+@keyframes particle-drift {
+  0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(-10vh) rotate(720deg); opacity: 0; }
+}
+
+/* ── Prism gradient text ─────────────────── */
+.text-prism-gradient {
+  background: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 40%, #d946ef 70%, #8b5cf6 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 4s ease-in-out infinite;
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% center; }
+  50% { background-position: 100% center; }
+}
+
+/* ── Text reveal animation ───────────────── */
+.reveal-text {
+  overflow: hidden;
+  display: inline-block;
+}
+
+.reveal-text span {
+  display: inline-block;
+  transform: translateY(110%);
+  animation: text-reveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes text-reveal {
+  to { transform: translateY(0); }
+}
+
+/* ── Section fade in on scroll ───────────── */
+.fade-section {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fade-section.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Input glow ──────────────────────────── */
+.input-wrapper {
+  position: relative;
+  border-radius: 1rem;
+  padding: 2px;
+  background: linear-gradient(135deg, rgba(139,92,246,0.2), rgba(6,182,212,0.1), rgba(217,70,239,0.15));
+  transition: all 0.4s ease;
+}
+
+.input-wrapper:focus-within {
+  background: linear-gradient(135deg, rgba(139,92,246,0.5), rgba(6,182,212,0.3), rgba(217,70,239,0.4));
+  box-shadow:
+    0 0 40px rgba(139, 92, 246, 0.15),
+    0 0 80px rgba(6, 182, 212, 0.08);
+}
+
+.input-inner {
+  background: rgba(10, 10, 18, 0.95);
+  border-radius: calc(1rem - 2px);
+  backdrop-filter: blur(20px);
+}
+
+/* ── Generate button ─────────────────────── */
+.btn-generate {
+  position: relative;
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-generate:not(:disabled):hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow:
+    0 10px 40px rgba(139, 92, 246, 0.4),
+    0 0 60px rgba(139, 92, 246, 0.2);
+}
+
+.btn-generate:not(:disabled):active {
+  transform: translateY(0) scale(0.98);
+}
+
+.btn-generate::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.12) 50%,
+    transparent 70%
+  );
+  transform: translateX(-100%);
+  transition: none;
+}
+
+.btn-generate:not(:disabled):hover::before {
+  animation: btn-shimmer 0.8s ease forwards;
+}
+
+@keyframes btn-shimmer {
+  to { transform: translateX(100%); }
+}
+
+/* ── Platform chip ───────────────────────── */
+.chip {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chip::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(139,92,246,0.15), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.chip:hover::before {
+  opacity: 1;
+}
+
+.chip-active {
+  border-color: rgba(139, 92, 246, 0.5) !important;
+  background: rgba(139, 92, 246, 0.1) !important;
+  box-shadow: 0 0 24px rgba(139, 92, 246, 0.1), inset 0 0 24px rgba(139, 92, 246, 0.05);
+}
+
+/* ── Content card ────────────────────────── */
+.content-card {
+  background: linear-gradient(
+    145deg,
+    rgba(16, 16, 28, 0.6),
+    rgba(10, 10, 18, 0.8)
+  );
+  border: 1px solid rgba(139, 92, 246, 0.1);
+  backdrop-filter: blur(24px);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.content-card:hover {
+  border-color: rgba(139, 92, 246, 0.25);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 48px rgba(139, 92, 246, 0.06);
+  transform: translateY(-2px);
+}
+
+/* ── Stagger animation ───────────────────── */
+.stagger-in {
+  opacity: 0;
+  transform: translateY(30px);
+  animation: stagger-reveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes stagger-reveal {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Copy button ─────────────────────────── */
+.btn-copy {
+  transition: all 0.3s ease;
+}
+
+.btn-copy:hover {
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+}
+
+.btn-copy-success {
+  background: rgba(16, 185, 129, 0.15) !important;
+  border-color: rgba(16, 185, 129, 0.4) !important;
+  color: #10b981 !important;
+}
+
+/* ── Horizontal rule gradient ────────────── */
+.hr-gradient {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(139,92,246,0.4), rgba(6,182,212,0.4), transparent);
+}
+
+/* ── Prism loader ────────────────────────── */
+.prism-loader-wrapper {
+  position: relative;
+  width: 64px;
+  height: 64px;
+}
+
+.prism-loader-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  animation: loader-spin linear infinite;
+}
+
+.prism-loader-ring:nth-child(1) {
+  border-top-color: #8b5cf6;
+  animation-duration: 1.2s;
+}
+
+.prism-loader-ring:nth-child(2) {
+  inset: 6px;
+  border-right-color: #06b6d4;
+  animation-duration: 1.8s;
+  animation-direction: reverse;
+}
+
+.prism-loader-ring:nth-child(3) {
+  inset: 12px;
+  border-bottom-color: #d946ef;
+  animation-duration: 1.5s;
+}
+
+@keyframes loader-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Platform icon pulse ─────────────────── */
+.platform-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
