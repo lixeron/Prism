@@ -19,28 +19,9 @@ export default {
         },
       },
       fontFamily: {
-        display: ['"Syne"', "sans-serif"],
+        display: ['"Unbounded"', "sans-serif"],
         body: ['"Plus Jakarta Sans"', "sans-serif"],
         mono: ['"JetBrains Mono"', "monospace"],
-      },
-      animation: {
-        "prism-spin": "prism-spin 3s linear infinite",
-        "fade-up": "fade-up 0.5s ease-out forwards",
-        "pulse-glow": "pulse-glow 2s ease-in-out infinite",
-      },
-      keyframes: {
-        "prism-spin": {
-          "0%": { transform: "rotate(0deg)" },
-          "100%": { transform: "rotate(360deg)" },
-        },
-        "fade-up": {
-          "0%": { opacity: "0", transform: "translateY(20px)" },
-          "100%": { opacity: "1", transform: "translateY(0)" },
-        },
-        "pulse-glow": {
-          "0%, 100%": { opacity: "0.4" },
-          "50%": { opacity: "1" },
-        },
       },
     },
   },

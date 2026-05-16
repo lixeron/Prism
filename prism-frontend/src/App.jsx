@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, memo } from "react";
 
 const PLATFORMS = [
   { id: "twitter", label: "𝕏 / Twitter", icon: "𝕏", color: "#8b5cf6" },
@@ -7,89 +7,48 @@ const PLATFORMS = [
   { id: "newsletter", label: "Newsletter", icon: "✦", color: "#06b6d4" },
 ];
 
+const TONES = [
+  { id: "professional", label: "Professional", icon: "💼" },
+  { id: "casual", label: "Casual", icon: "☕" },
+  { id: "witty", label: "Witty & Bold", icon: "⚡" },
+  { id: "educational", label: "Educational", icon: "🎓" },
+  { id: "inspirational", label: "Inspirational", icon: "✨" },
+  { id: "storyteller", label: "Storyteller", icon: "📖" },
+];
+
+const TONE_DESCRIPTIONS = {
+  professional: "professional yet conversational — authoritative but approachable",
+  casual: "relaxed and friendly — like texting a smart friend",
+  witty: "bold, punchy, and opinionated — hot takes with substance",
+  educational: "clear and informative — breaks down complex ideas simply",
+  inspirational: "motivating and uplifting — connects ideas to bigger purpose",
+  storyteller: "narrative-driven — turns insights into compelling micro-stories",
+};
+
 const API_BASE = "/api/v1";
 
-/* ═══════════════════════════════════════════
-   Custom Cursor
-   ═══════════════════════════════════════════ */
-function CustomCursor() {
-  const dotRef = useRef(null);
-  const ringRef = useRef(null);
-
-  useEffect(() => {
-    let mouseX = 0, mouseY = 0;
-    let dotX = 0, dotY = 0;
-    let ringX = 0, ringY = 0;
-
-    const onMove = (e) => {
-      mouseX = e.clientX;
-      mouseY = e.clientY;
-    };
-
-    const onHover = () => ringRef.current?.classList.add("hovering");
-    const onLeave = () => ringRef.current?.classList.remove("hovering");
-
-    const animate = () => {
-      // Dot follows tightly
-      dotX += (mouseX - dotX) * 0.35;
-      dotY += (mouseY - dotY) * 0.35;
-      // Ring follows loosely
-      ringX += (mouseX - ringX) * 0.12;
-      ringY += (mouseY - ringY) * 0.12;
-
-      if (dotRef.current) {
-        dotRef.current.style.left = `${dotX - 4}px`;
-        dotRef.current.style.top = `${dotY - 4}px`;
-      }
-      if (ringRef.current) {
-        ringRef.current.style.left = `${ringX - 18}px`;
-        ringRef.current.style.top = `${ringY - 18}px`;
-      }
-      requestAnimationFrame(animate);
-    };
-
-    window.addEventListener("mousemove", onMove);
-    document.querySelectorAll("button, a, input").forEach((el) => {
-      el.addEventListener("mouseenter", onHover);
-      el.addEventListener("mouseleave", onLeave);
-    });
-
-    animate();
-
-    return () => {
-      window.removeEventListener("mousemove", onMove);
-    };
-  }, []);
-
-  return (
-    <>
-      <div ref={dotRef} className="cursor-dot" />
-      <div ref={ringRef} className="cursor-ring" />
-    </>
-  );
-}
+/* ── Pre-generate particle data at module level (never re-creates) ── */
+const PARTICLE_DATA = Array.from({ length: 30 }, (_, i) => ({
+  id: i,
+  left: `${Math.random() * 100}%`,
+  size: Math.random() * 3 + 1,
+  duration: Math.random() * 20 + 15,
+  delay: Math.random() * -20,
+  color:
+    i % 3 === 0
+      ? "rgba(139,92,246,0.4)"
+      : i % 3 === 1
+      ? "rgba(6,182,212,0.3)"
+      : "rgba(217,70,239,0.3)",
+}));
 
 /* ═══════════════════════════════════════════
-   Floating Particles
+   Floating Particles (memoized — never re-renders)
    ═══════════════════════════════════════════ */
-function Particles() {
-  const particles = Array.from({ length: 30 }, (_, i) => ({
-    id: i,
-    left: `${Math.random() * 100}%`,
-    size: Math.random() * 3 + 1,
-    duration: Math.random() * 20 + 15,
-    delay: Math.random() * -20,
-    color:
-      i % 3 === 0
-        ? "rgba(139,92,246,0.4)"
-        : i % 3 === 1
-        ? "rgba(6,182,212,0.3)"
-        : "rgba(217,70,239,0.3)",
-  }));
-
+const Particles = memo(function Particles() {
   return (
-    <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-      {particles.map((p) => (
+    <div className="particle-field">
+      {PARTICLE_DATA.map((p) => (
         <div
           key={p.id}
           className="particle"
@@ -104,6 +63,63 @@ function Particles() {
           }}
         />
       ))}
+    </div>
+  );
+});
+
+/* ═══════════════════════════════════════════
+   Splash Intro (shows once per session)
+   ═══════════════════════════════════════════ */
+function SplashIntro({ onComplete }) {
+  const [exiting, setExiting] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setExiting(true), 2400);
+    const remove = setTimeout(() => onComplete(), 3200);
+    return () => { clearTimeout(timer); clearTimeout(remove); };
+  }, [onComplete]);
+
+  return (
+    <div className={`splash ${exiting ? "exit" : ""}`}>
+      {/* Prism triangle */}
+      <svg className="splash-prism" viewBox="0 0 120 120">
+        <defs>
+          <linearGradient id="triGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#8b5cf6" />
+            <stop offset="50%" stopColor="#06b6d4" />
+            <stop offset="100%" stopColor="#d946ef" />
+          </linearGradient>
+        </defs>
+        {/* Fill (fades in after stroke) */}
+        <polygon
+          className="tri-fill"
+          points="60,10 10,110 110,110"
+          fill="url(#triGrad)"
+        />
+        {/* Stroke (draws in) */}
+        <polygon
+          className="tri-stroke"
+          points="60,10 10,110 110,110"
+          fill="none"
+          stroke="url(#triGrad)"
+          strokeWidth="2"
+          strokeLinejoin="round"
+        />
+      </svg>
+
+      {/* Light beam + spectrum */}
+      <div className="splash-beam">
+        <div className="beam-white" />
+        <div className="beam-spectrum ray-1" />
+        <div className="beam-spectrum ray-2" />
+        <div className="beam-spectrum ray-3" />
+        <div className="beam-spectrum ray-4" />
+      </div>
+
+      {/* Title */}
+      <span className="splash-title font-display text-sm font-bold text-prism-gradient tracking-[0.3em] uppercase">
+        Prism
+      </span>
     </div>
   );
 }
@@ -138,63 +154,89 @@ function FadeSection({ children, className = "", delay = 0 }) {
 }
 
 /* ═══════════════════════════════════════════
-   Animated Text Reveal
-   ═══════════════════════════════════════════ */
-function RevealText({ text, className = "", delay = 0 }) {
-  return (
-    <span className={`reveal-text ${className}`}>
-      <span style={{ animationDelay: `${delay}ms` }}>{text}</span>
-    </span>
-  );
-}
-
-/* ═══════════════════════════════════════════
-   Prism Logo (animated)
+   Prism Logo (animated on hover)
    ═══════════════════════════════════════════ */
 function PrismLogo() {
   const [hovered, setHovered] = useState(false);
 
   return (
     <div
-      className="flex items-center gap-3 group"
+      className="creator-card-wrapper"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <div className="relative w-10 h-10" style={{ transition: "transform 0.4s ease", transform: hovered ? "rotate(15deg) scale(1.1)" : "rotate(0)" }}>
+      <div className="flex items-center gap-3">
         <div
-          className="absolute inset-0"
+          className="relative w-10 h-10"
           style={{
-            background: "linear-gradient(135deg, #8b5cf6, #06b6d4, #d946ef)",
-            clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)",
-            animation: hovered ? "none" : undefined,
+            transition: "transform 0.4s cubic-bezier(0.16,1,0.3,1)",
+            transform: hovered ? "rotate(15deg) scale(1.1)" : "rotate(0)",
           }}
-        />
-        <div
-          className="absolute inset-[3px]"
-          style={{
-            background: "#08080f",
-            clipPath: "polygon(50% 8%, 5% 97%, 95% 97%)",
-          }}
-        />
-        <div
-          className="absolute inset-[6px]"
-          style={{
-            background: "linear-gradient(135deg, rgba(139,92,246,0.4), rgba(6,182,212,0.3))",
-            clipPath: "polygon(50% 15%, 10% 95%, 90% 95%)",
-            transition: "opacity 0.3s ease",
-            opacity: hovered ? 1 : 0.5,
-          }}
-        />
+        >
+          <div
+            className="absolute inset-0"
+            style={{
+              background: "linear-gradient(135deg, #8b5cf6, #06b6d4, #d946ef)",
+              clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)",
+            }}
+          />
+          <div
+            className="absolute inset-[3px]"
+            style={{
+              background: "#08080f",
+              clipPath: "polygon(50% 8%, 5% 97%, 95% 97%)",
+            }}
+          />
+          <div
+            className="absolute inset-[6px]"
+            style={{
+              background:
+                "linear-gradient(135deg, rgba(139,92,246,0.4), rgba(6,182,212,0.3))",
+              clipPath: "polygon(50% 15%, 10% 95%, 90% 95%)",
+              transition: "opacity 0.3s ease",
+              opacity: hovered ? 1 : 0.5,
+            }}
+          />
+        </div>
+        <span className="font-display text-xl font-extrabold text-prism-gradient tracking-tight">
+          PRISM
+        </span>
       </div>
-      <span className="font-display text-2xl font-extrabold text-prism-gradient tracking-tight">
-        PRISM
-      </span>
+
+      {/* Creator card */}
+      <div className="creator-card">
+        <p className="font-body text-xs text-white/50 leading-relaxed mb-3">
+          Built by a CS &amp; Cybersecurity student at{" "}
+          <span className="text-white/70">UAB</span>, Birmingham, AL.
+          <br />
+          First-generation college student. Shipping real products,
+          not homework assignments.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <a
+            href="https://github.com/lixeron"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="creator-link font-mono"
+          >
+            <span>◈</span> GitHub
+          </a>
+          <a
+            href="https://lixeron.vercel.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="creator-link font-mono"
+          >
+            <span>◉</span> Portfolio
+          </a>
+        </div>
+      </div>
     </div>
   );
 }
 
 /* ═══════════════════════════════════════════
-   Platform Chip
+   Platform Chip (with radial hover tracking)
    ═══════════════════════════════════════════ */
 function PlatformChip({ platform, selected, onToggle }) {
   const chipRef = useRef(null);
@@ -213,9 +255,10 @@ function PlatformChip({ platform, selected, onToggle }) {
       onClick={() => onToggle(platform.id)}
       onMouseMove={handleMouse}
       className={`chip px-5 py-2.5 rounded-xl font-body text-sm font-medium border transition-all duration-300
-        ${selected
-          ? "chip-active border-prism-violet/50 text-white"
-          : "border-white/[0.06] bg-white/[0.02] text-white/40 hover:text-white/70 hover:border-white/15"
+        ${
+          selected
+            ? "chip-active border-prism-violet/50 text-white"
+            : "border-white/[0.06] bg-white/[0.02] text-white/40 hover:text-white/70 hover:border-white/15"
         }`}
     >
       <span
@@ -248,9 +291,10 @@ function CopyButton({ text }) {
     <button
       onClick={handleCopy}
       className={`btn-copy px-4 py-2 rounded-lg font-mono text-xs font-medium border
-        ${copied
-          ? "btn-copy-success"
-          : "border-white/10 bg-white/[0.03] text-white/50 hover:border-prism-violet/40 hover:text-white hover:bg-white/[0.06]"
+        ${
+          copied
+            ? "btn-copy-success"
+            : "border-white/10 bg-white/[0.03] text-white/50 hover:border-prism-violet/40 hover:text-white hover:bg-white/[0.06]"
         }`}
     >
       {copied ? "✓ Copied" : "⎘ Copy"}
@@ -277,7 +321,7 @@ function ResultCard({ platform, content, index }) {
           >
             {meta?.icon}
           </span>
-          <h3 className="font-display text-base font-bold text-white tracking-wide">
+          <h3 className="font-display text-sm font-bold text-white tracking-wide">
             {meta?.label}
           </h3>
           <span className="font-mono text-[10px] text-white/20 ml-1">
@@ -287,10 +331,7 @@ function ResultCard({ platform, content, index }) {
         <CopyButton text={content} />
       </div>
 
-      <div
-        className="font-body text-[13px] text-white/70 leading-[1.8] whitespace-pre-wrap"
-        style={{ fontWeight: 400 }}
-      >
+      <div className="font-body text-[13px] text-white/70 leading-[1.8] whitespace-pre-wrap">
         {content}
       </div>
     </div>
@@ -298,7 +339,7 @@ function ResultCard({ platform, content, index }) {
 }
 
 /* ═══════════════════════════════════════════
-   Loader
+   Loader (triple ring)
    ═══════════════════════════════════════════ */
 function Loader() {
   const messages = [
@@ -310,7 +351,10 @@ function Loader() {
   const [idx, setIdx] = useState(0);
 
   useEffect(() => {
-    const t = setInterval(() => setIdx((i) => (i + 1) % messages.length), 3000);
+    const t = setInterval(
+      () => setIdx((i) => (i + 1) % messages.length),
+      3000
+    );
     return () => clearInterval(t);
   }, []);
 
@@ -322,7 +366,7 @@ function Loader() {
         <div className="prism-loader-ring" />
       </div>
       <p
-        className="font-body text-sm text-white/30 transition-all duration-500"
+        className="font-body text-sm text-white/30"
         key={idx}
         style={{ animation: "stagger-reveal 0.5s ease forwards" }}
       >
@@ -367,11 +411,22 @@ function ErrorDisplay({ message, onDismiss }) {
 export default function App() {
   const [url, setUrl] = useState("");
   const [platforms, setPlatforms] = useState(["twitter", "linkedin"]);
+  const [tone, setTone] = useState("professional");
+  const [context, setContext] = useState("");
+  const [showContext, setShowContext] = useState(false);
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [videoTitle, setVideoTitle] = useState("");
+  const [showSplash, setShowSplash] = useState(
+    () => !sessionStorage.getItem("prism-visited")
+  );
   const resultsRef = useRef(null);
+
+  const dismissSplash = useCallback(() => {
+    setShowSplash(false);
+    sessionStorage.setItem("prism-visited", "1");
+  }, []);
 
   const toggle = (id) =>
     setPlatforms((p) =>
@@ -392,7 +447,12 @@ export default function App() {
       const res = await fetch(`${API_BASE}/repurpose`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: url.trim(), platforms }),
+        body: JSON.stringify({
+          url: url.trim(),
+          platforms,
+          tone: TONE_DESCRIPTIONS[tone] || tone,
+          context: context.trim(),
+        }),
       });
 
       if (!res.ok) {
@@ -405,7 +465,10 @@ export default function App() {
       setResults(data.platforms);
 
       setTimeout(() => {
-        resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        resultsRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
       }, 300);
     } catch (err) {
       setError(err.message);
@@ -416,7 +479,8 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen">
-      <CustomCursor />
+      {/* Splash intro (once per session) */}
+      {showSplash && <SplashIntro onComplete={dismissSplash} />}
 
       {/* Background layers */}
       <div className="bg-mesh">
@@ -442,29 +506,27 @@ export default function App() {
 
         {/* Hero */}
         <section className="mb-16">
-          <h1 className="font-display leading-[1.05] mb-5">
-            <RevealText
-              text="Content in."
-              className="text-[clamp(2.5rem,7vw,4.5rem)] font-extrabold text-white block"
-              delay={200}
-            />
-            <RevealText
-              text="Posts out."
-              className="text-[clamp(2.5rem,7vw,4.5rem)] font-extrabold text-prism-gradient block"
-              delay={500}
-            />
+          <h1 className="font-display leading-[1.1] mb-6">
+            <span className="hero-line">
+              <span
+                className="hero-line-inner text-[clamp(2.2rem,6.5vw,4rem)] font-black text-white"
+                style={{ animationDelay: "0.2s" }}
+              >
+                Content in.
+              </span>
+            </span>
+            <span className="hero-line">
+              <span
+                className="hero-line-inner hero-underline text-[clamp(2.2rem,6.5vw,4rem)] font-black text-prism-gradient"
+                style={{ animationDelay: "0.5s" }}
+              >
+                Posts out.
+              </span>
+            </span>
           </h1>
-          <div className="overflow-hidden">
-            <p
-              className="font-body text-base sm:text-lg text-white/30 max-w-sm"
-              style={{
-                animation: "stagger-reveal 0.7s cubic-bezier(0.16,1,0.3,1) 0.8s forwards",
-                opacity: 0,
-              }}
-            >
-              Paste a YouTube URL. Get a week of social content in seconds.
-            </p>
-          </div>
+          <p className="hero-subtitle font-body text-base sm:text-lg text-white/30 max-w-sm leading-relaxed">
+            Paste a YouTube URL. Get a week of social content in seconds.
+          </p>
         </section>
 
         {/* Input */}
@@ -482,9 +544,12 @@ export default function App() {
               <button
                 onClick={generate}
                 disabled={
-                  !url.trim() || !isYT(url) || platforms.length === 0 || loading
+                  !url.trim() ||
+                  !isYT(url) ||
+                  platforms.length === 0 ||
+                  loading
                 }
-                className="btn-generate px-7 py-3.5 rounded-xl font-display text-sm font-bold text-white disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:transform-none disabled:hover:shadow-none whitespace-nowrap"
+                className="btn-generate px-7 py-3.5 rounded-xl font-display text-xs font-bold text-white disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:transform-none disabled:hover:shadow-none whitespace-nowrap"
               >
                 {loading ? (
                   <span className="flex items-center gap-2">
@@ -522,6 +587,64 @@ export default function App() {
           </div>
         </FadeSection>
 
+        {/* Tone */}
+        <FadeSection delay={350} className="mb-6">
+          <p className="font-mono text-[10px] text-white/20 uppercase tracking-[0.2em] mb-3">
+            Tone
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {TONES.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setTone(t.id)}
+                className={`chip px-4 py-2 rounded-xl font-body text-sm font-medium border transition-all duration-300
+                  ${
+                    tone === t.id
+                      ? "chip-active border-prism-violet/50 text-white"
+                      : "border-white/[0.06] bg-white/[0.02] text-white/40 hover:text-white/70 hover:border-white/15"
+                  }`}
+              >
+                <span className="mr-1.5">{t.icon}</span>
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </FadeSection>
+
+        {/* Brand Voice (collapsible) */}
+        <FadeSection delay={400} className="mb-16">
+          <button
+            onClick={() => setShowContext(!showContext)}
+            className="font-mono text-[10px] text-white/20 uppercase tracking-[0.2em] hover:text-white/40 transition-colors flex items-center gap-2"
+          >
+            <span
+              className="inline-block transition-transform duration-200"
+              style={{ transform: showContext ? "rotate(90deg)" : "rotate(0)" }}
+            >
+              ▸
+            </span>
+            Brand voice notes
+            <span className="font-body text-[10px] text-white/10 normal-case tracking-normal">
+              (optional)
+            </span>
+          </button>
+
+          {showContext && (
+            <div className="mt-3" style={{ animation: "stagger-reveal 0.4s ease forwards" }}>
+              <textarea
+                value={context}
+                onChange={(e) => setContext(e.target.value)}
+                placeholder="Describe your style... e.g. 'I'm a fitness creator who uses humor and pop culture references. My audience is 18-30 year olds. I never use corporate jargon.'"
+                rows={3}
+                className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-5 py-3.5 font-body text-sm text-white/70 placeholder-white/15 outline-none resize-none transition-all duration-300 focus:border-prism-violet/30 focus:bg-white/[0.05]"
+              />
+              <p className="font-mono text-[10px] text-white/10 mt-2 ml-1">
+                Prism adapts output to match your unique voice
+              </p>
+            </div>
+          )}
+        </FadeSection>
+
         {/* Loading */}
         {loading && <Loader />}
 
@@ -535,7 +658,6 @@ export default function App() {
         {/* Results */}
         {results && (
           <section ref={resultsRef} className="pb-24">
-            {/* Divider with title */}
             <div className="flex items-center gap-4 mb-8">
               <div className="hr-gradient flex-1" />
               <span className="font-mono text-[10px] text-white/25 shrink-0 max-w-[200px] truncate">
@@ -555,8 +677,10 @@ export default function App() {
               ))}
             </div>
 
-            {/* Bottom CTA */}
-            <div className="text-center mt-12 stagger-in" style={{ animationDelay: `${results.length * 120 + 200}ms` }}>
+            <div
+              className="text-center mt-12 stagger-in"
+              style={{ animationDelay: `${results.length * 120 + 200}ms` }}
+            >
               <button
                 onClick={() => {
                   setResults(null);
