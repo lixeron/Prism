@@ -18,8 +18,8 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:5173",  # Vite dev server
-        "https://prism.vercel.app",  # Production frontend (update later)
+        "http://localhost:5173", # Keep this so local development still works
+        "https://prism-five-xi.vercel.app" # Your new Vercel frontend
     ],
     allow_credentials=True,
     allow_methods=["*"],
