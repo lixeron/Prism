@@ -32,7 +32,9 @@ const PLATFORM_STYLES = {
   newsletter: { color: "#06b6d4", dim: "rgba(6,182,212,0.08)", border: "rgba(6,182,212,0.15)", glow: "rgba(6,182,212,0.06)" },
 };
 
-const API_BASE = "/api/v1";
+// Grab the Railway URL from Vercel's environment variables, or fall back to localhost for local development
+const HOST_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_BASE = `${HOST_URL}/api/v1`;
 
 /* ── Particle data (module-level, never re-creates) ── */
 const PARTICLE_DATA = Array.from({ length: 30 }, (_, i) => ({
