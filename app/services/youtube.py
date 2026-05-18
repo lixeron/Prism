@@ -58,75 +58,98 @@ def _extract_sync(url: str, video_id: str) -> tuple[VideoMetadata, str, str, str
     tmp_dir = tempfile.gettempdir()
     output_path = os.path.join(tmp_dir, f"prism_{video_id}")
 
-    # Step 1: Get metadata
-    meta_opts = {
-        "quiet": True,
-        "no_warnings": True,
-        "no_playlist": True,
-    }
+    # --- SECURE COOKIE HANDLING ---
+    cookie_file_path = None
+    cookie_data = os.environ.get('YOUTUBE_COOKIES')
+    
+    if cookie_data:
+        # Create a temporary file that won't auto-delete on close so yt-dlp can open it
+        fd, cookie_file_path = tempfile.mkstemp(suffix='.txt', text=True)
+        with os.fdopen(fd, 'w') as f:
+            f.write(cookie_data)
 
-    with yt_dlp.YoutubeDL(meta_opts) as ydl:
-        info = ydl.extract_info(url, download=False)
-
-    metadata = VideoMetadata(
-        video_id=video_id,
-        title=info.get("title", ""),
-        channel=info.get("channel", info.get("uploader", "")),
-        duration_seconds=info.get("duration", 0),
-        description=info.get("description", ""),
-        tags=info.get("tags") or [],
-        view_count=info.get("view_count", 0),
-        upload_date=info.get("upload_date", ""),
-    )
-
-    # Step 2: Try to get transcript — manual subs first, then auto
-    for write_key, source_label in [
-        ("writesubtitles", "captions"),
-        ("writeautomaticsub", "auto-generated"),
-    ]:
-        sub_opts = {
+    try:
+        # Step 1: Get metadata
+        meta_opts = {
             "quiet": True,
             "no_warnings": True,
             "no_playlist": True,
-            "skip_download": True,
-            write_key: True,
-            "subtitleslangs": ["en"],
-            "subtitlesformat": "json3",
-            "outtmpl": output_path,
         }
+        # Inject the cookies into the yt-dlp options
+        if cookie_file_path:
+            meta_opts['cookiefile'] = cookie_file_path
 
-        with yt_dlp.YoutubeDL(sub_opts) as ydl:
-            ydl.download([url])
+        with yt_dlp.YoutubeDL(meta_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
 
-        # Look for the subtitle file
-        sub_path = f"{output_path}.en.json3"
-        try:
-            with open(sub_path, encoding="utf-8") as f:
-                sub_data = json.load(f)
-            # Clean up temp file
-            os.remove(sub_path)
-        except FileNotFoundError:
-            continue
+        metadata = VideoMetadata(
+            video_id=video_id,
+            title=info.get("title", ""),
+            channel=info.get("channel", info.get("uploader", "")),
+            duration_seconds=info.get("duration", 0),
+            description=info.get("description", ""),
+            tags=info.get("tags") or [],
+            view_count=info.get("view_count", 0),
+            upload_date=info.get("upload_date", ""),
+        )
 
-        # Parse json3 subtitle format
-        segments = sub_data.get("events", [])
-        lines = []
-        for event in segments:
-            segs = event.get("segs", [])
-            text = "".join(s.get("utf8", "") for s in segs).strip()
-            if text and text != "\n":
-                lines.append(text)
+        # Step 2: Try to get transcript — manual subs first, then auto
+        for write_key, source_label in [
+            ("writesubtitles", "captions"),
+            ("writeautomaticsub", "auto-generated"),
+        ]:
+            sub_opts = {
+                "quiet": True,
+                "no_warnings": True,
+                "no_playlist": True,
+                "skip_download": True,
+                write_key: True,
+                "subtitleslangs": ["en"],
+                "subtitlesformat": "json3",
+                "outtmpl": output_path,
+            }
+            # Inject the cookies here as well
+            if cookie_file_path:
+                sub_opts['cookiefile'] = cookie_file_path
 
-        transcript = " ".join(lines)
-        transcript = re.sub(r"\s+", " ", transcript).strip()
+            with yt_dlp.YoutubeDL(sub_opts) as ydl:
+                ydl.download([url])
 
-        if transcript:
-            return metadata, transcript, "en", source_label
+            # Look for the subtitle file
+            sub_path = f"{output_path}.en.json3"
+            try:
+                with open(sub_path, encoding="utf-8") as f:
+                    sub_data = json.load(f)
+                # Clean up subtitle temp file
+                os.remove(sub_path)
+            except FileNotFoundError:
+                continue
 
-    raise RuntimeError(
-        "No English transcript available for this video. "
-        "The video may not have captions enabled."
-    )
+            # Parse json3 subtitle format
+            segments = sub_data.get("events", [])
+            lines = []
+            for event in segments:
+                segs = event.get("segs", [])
+                text = "".join(s.get("utf8", "") for s in segs).strip()
+                if text and text != "\n":
+                    lines.append(text)
+
+            transcript = " ".join(lines)
+            transcript = re.sub(r"\s+", " ", transcript).strip()
+
+            if transcript:
+                return metadata, transcript, "en", source_label
+
+        raise RuntimeError(
+            "No English transcript available for this video. "
+            "The video may not have captions enabled."
+        )
+
+    finally:
+        # --- CLEANUP COOKIE FILE ---
+        # Ensure the sensitive cookie file is destroyed even if the extraction crashes
+        if cookie_file_path and os.path.exists(cookie_file_path):
+            os.remove(cookie_file_path)
 
 
 async def extract(url: str) -> TranscriptResult:
