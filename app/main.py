@@ -15,7 +15,6 @@ app = FastAPI(
 )
 
 # CORS — allow frontend origins
-from fastapi.middleware.cors import CORSMiddleware
 
 app.add_middleware(
     CORSMiddleware,
