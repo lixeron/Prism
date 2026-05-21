@@ -61,7 +61,7 @@ def _extract_sync(url: str, video_id: str) -> tuple[VideoMetadata, str, str, str
     # --- SECURE COOKIE HANDLING ---
     cookie_file_path = None
     cookie_data = os.environ.get('YOUTUBE_COOKIES')
-    
+
     if cookie_data:
         # Create a temporary file that won't auto-delete on close so yt-dlp can open it
         fd, cookie_file_path = tempfile.mkstemp(suffix='.txt', text=True)
