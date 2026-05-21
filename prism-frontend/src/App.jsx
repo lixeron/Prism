@@ -397,19 +397,29 @@ export default function App() {
   const isYT = (u) => /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)/.test(u);
 
   const generate = async () => {
-    if (!url.trim() || !isYT(url) || platforms.length === 0) return;
+    const videoIdMatch = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
+    const cleanUrl = videoIdMatch
+      ? `https://www.youtube.com/watch?v=${videoIdMatch[1]}`
+      : url;
+    if (!cleanUrl.trim() || !isYT(cleanUrl) || platforms.length === 0) return;
     setLoading(true); setError(null); setResults(null);
 
     try {
       const res = await fetch(`${API_BASE}/repurpose`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: url.trim(), platforms, tone: TONE_DESCRIPTIONS[tone] || tone, context: context.trim() }),
+        body: JSON.stringify({ 
+          url: cleanUrl.trim(), 
+          platforms, 
+          tone: TONE_DESCRIPTIONS[tone] || tone, 
+          context: context.trim()
+         }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => null);
         throw new Error(data?.detail || `Request failed (${res.status})`);
       }
+      
       const data = await res.json();
       setVideoTitle(data.video_title);
       setResults(data.platforms);
