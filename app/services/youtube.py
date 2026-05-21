@@ -74,6 +74,8 @@ def _extract_sync(url: str, video_id: str) -> tuple[VideoMetadata, str, str, str
             "quiet": True,
             "no_warnings": True,
             "no_playlist": True,
+            "skip_download": True,
+            "format": "bestaudio/best",
         }
         # Inject the cookies into the yt-dlp options
         if cookie_file_path:
@@ -107,6 +109,7 @@ def _extract_sync(url: str, video_id: str) -> tuple[VideoMetadata, str, str, str
                 "subtitleslangs": ["en"],
                 "subtitlesformat": "json3",
                 "outtmpl": output_path,
+                "format": "bestaudio/best",
             }
             # Inject the cookies here as well
             if cookie_file_path:
