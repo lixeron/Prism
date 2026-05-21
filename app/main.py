@@ -15,11 +15,13 @@ app = FastAPI(
 )
 
 # CORS — allow frontend origins
+from fastapi.middleware.cors import CORSMiddleware
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:5173",  # Keep this so local development still works
-        "https://prismcontent.vercel.app/",  # Your new Vercel frontend
+        "http://localhost:5173",
+        "https://prismcontent.vercel.app" # <-- Ensure this matches exactly
     ],
     allow_credentials=True,
     allow_methods=["*"],
