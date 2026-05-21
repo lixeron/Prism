@@ -20,7 +20,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
-        "https://prismcontent.vercel.app" # <-- Ensure this matches exactly
+        "https://prismcontent.vercel.app",  # <-- Ensure this matches exactly
     ],
     allow_credentials=True,
     allow_methods=["*"],

@@ -60,12 +60,12 @@ def _extract_sync(url: str, video_id: str) -> tuple[VideoMetadata, str, str, str
 
     # --- SECURE COOKIE HANDLING ---
     cookie_file_path = None
-    cookie_data = os.environ.get('YOUTUBE_COOKIES')
+    cookie_data = os.environ.get("YOUTUBE_COOKIES")
 
     if cookie_data:
         # Create a temporary file that won't auto-delete on close so yt-dlp can open it
-        fd, cookie_file_path = tempfile.mkstemp(suffix='.txt', text=True)
-        with os.fdopen(fd, 'w') as f:
+        fd, cookie_file_path = tempfile.mkstemp(suffix=".txt", text=True)
+        with os.fdopen(fd, "w") as f:
             f.write(cookie_data)
 
     try:
@@ -77,7 +77,7 @@ def _extract_sync(url: str, video_id: str) -> tuple[VideoMetadata, str, str, str
         }
         # Inject the cookies into the yt-dlp options
         if cookie_file_path:
-            meta_opts['cookiefile'] = cookie_file_path
+            meta_opts["cookiefile"] = cookie_file_path
 
         with yt_dlp.YoutubeDL(meta_opts) as ydl:
             info = ydl.extract_info(url, download=False)
@@ -110,7 +110,7 @@ def _extract_sync(url: str, video_id: str) -> tuple[VideoMetadata, str, str, str
             }
             # Inject the cookies here as well
             if cookie_file_path:
-                sub_opts['cookiefile'] = cookie_file_path
+                sub_opts["cookiefile"] = cookie_file_path
 
             with yt_dlp.YoutubeDL(sub_opts) as ydl:
                 ydl.download([url])
