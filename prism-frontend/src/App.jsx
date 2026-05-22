@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, memo } from "react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 const PLATFORMS = [
   { id: "twitter", label: "𝕏 / Twitter", icon: "𝕏", color: "#8b5cf6" },
@@ -433,6 +434,7 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen">
+      <SpeedInsights />
       {showSplash && <SplashIntro onComplete={dismissSplash} />}
 
       <div className="bg-mesh"><div className="mesh-orb" /><div className="mesh-orb" /><div className="mesh-orb" /></div>
