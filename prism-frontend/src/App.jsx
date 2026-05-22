@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, memo } from "react";
+import { Analytics } from '@vercel/analytics/react';
 
 const PLATFORMS = [
   { id: "twitter", label: "𝕏 / Twitter", icon: "𝕏", color: "#8b5cf6" },
@@ -438,6 +439,7 @@ export default function App() {
       <div className="bg-mesh"><div className="mesh-orb" /><div className="mesh-orb" /><div className="mesh-orb" /></div>
       <div className="noise-overlay" />
       <Particles />
+      <Analytics />
 
       <div className="relative z-10 max-w-2xl mx-auto px-6 sm:px-8">
         {/* Nav */}
