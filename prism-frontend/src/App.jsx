@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, memo } from "react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 const PLATFORMS = [
   { id: "twitter", label: "𝕏 / Twitter", icon: "𝕏", color: "#8b5cf6" },
@@ -350,7 +351,7 @@ function Loader() {
   );
 }
 
-/* ═══════════════════════════════════════════
+/* ═════════════════════════════���═════════════
    Error
    ═══════════════════════════════════════════ */
 function ErrorDisplay({ message, onDismiss }) {
@@ -591,6 +592,7 @@ export default function App() {
           </footer>
         )}
       </div>
+      <SpeedInsights />
     </div>
   );
 }
